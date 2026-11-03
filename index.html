@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Herramientas · Antonio J. Pan-Collantes</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; padding: 3rem 1.25rem;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: #020617; color: #e2e8f0;
+      display: flex; justify-content: center;
+    }
+    main { width: 100%; max-width: 52rem; }
+    h1 { font-size: 1.6rem; margin: 0 0 .35rem; letter-spacing: -.02em; }
+    p.sub { margin: 0 0 2.25rem; color: #94a3b8; font-size: .9rem; }
+    h2 {
+      font-size: .72rem; text-transform: uppercase; letter-spacing: .12em;
+      color: #a5b4fc; margin: 2rem 0 .7rem; font-weight: 600;
+    }
+    ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+    a.card {
+      display: block; text-decoration: none; color: inherit;
+      background: #0f172a; border: 1px solid #1e293b; border-radius: .85rem;
+      padding: .9rem 1.1rem; transition: border-color .15s, transform .15s, background .15s;
+    }
+    a.card:hover { border-color: #818cf8; background: #111f38; transform: translateY(-2px); }
+    a.card .t { font-weight: 600; font-size: .93rem; color: #f1f5f9; }
+    a.card .d { margin-top: .25rem; font-size: .8rem; color: #94a3b8; line-height: 1.45; }
+    footer { margin-top: 3rem; font-size: .75rem; color: #475569; line-height: 1.6; }
+    footer a { color: #a5b4fc; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Herramientas interactivas</h1>
+    <p class="sub">Utilidades docentes y personales · Antonio J. Pan-Collantes</p>
+
+    <h2>Docencia</h2>
+    <ul>
+      <li><a class="card" href="editorxml.html">
+        <div class="t">Editor de preguntas Moodle XML</div>
+        <div class="d">Construye y edita bancos de preguntas tipo test y los exporta en formato Moodle XML. Parte del proyecto INNOVA 25-26.</div>
+      </a></li>
+      <li><a class="card" href="mezclartablas.html">
+        <div class="t">Mezclador de calificaciones</div>
+        <div class="d">Combina varias tablas de notas con pesos y genera la calificación final.</div>
+      </a></li>
+      <li><a class="card" href="delimiters.html">
+        <div class="t">Conversor de delimitadores LaTeX</div>
+        <div class="d">Cambia entre <code>$…$</code>, <code>\(…\)</code>, <code>\[…\]</code> y otros delimitadores de fórmulas.</div>
+      </a></li>
+      <li><a class="card" href="jid26.html">
+        <div class="t">Creación de cuestionarios Moodle</div>
+        <div class="d">Presentación en las V Jornadas de Innovación Docente UCA: del banco de preguntas en hoja de cálculo al XML de Moodle.</div>
+      </a></li>
+    </ul>
+
+    <h2>Utilidades</h2>
+    <ul>
+      <li><a class="card" href="impresoras_mat.html">
+        <div class="t">Impresoras del Departamento de Matemáticas</div>
+        <div class="d">Configuración de las impresoras de la UCA para el departamento.</div>
+      </a></li>
+      <li><a class="card" href="youtubeplaylists.html">
+        <div class="t">SheetsTube Player Pro</div>
+        <div class="d">Reproductor de listas de vídeo construidas desde una hoja de cálculo.</div>
+      </a></li>
+      <li><a class="card" href="personajesESDLA.html">
+        <div class="t">Relaciones entre personajes de ESDLA</div>
+        <div class="d">Grafo de relaciones de <em>El Señor de los Anillos</em>, útil como ejemplo de visualización de redes.</div>
+      </a></li>
+      <li><a class="card" href="ligalibros.html">
+        <div class="t">Liga de libros familiar</div>
+        <div class="d">Seguimiento y clasificación de lecturas en familia.</div>
+      </a></li>
+    </ul>
+
+    <footer>
+      Cada página es un HTML autocontenido; las dependencias se cargan desde CDN.
+      <br>Código y versiones: <a href="https://github.com/antoniojpan/tools">github.com/antoniojpan/tools</a>
+      <br>Visualizaciones matemáticas: <a href="https://antoniojpan.github.io/visualizations/">antoniojpan.github.io/visualizations</a>
+    </footer>
+  </main>
+</body>
+</html>

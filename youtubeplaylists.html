@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SheetsTube Player Pro</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23ef4444%22/><path d=%22M40 30 L70 50 L40 70 Z%22 fill=%22white%22/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        .aspect-w-16 { position: relative; padding-bottom: 56.25%; background: black; }
+        .aspect-w-16 iframe, .aspect-w-16 video, .audio-visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .video-item { transition: all 0.3s ease; }
+        html, body { overscroll-behavior-y: contain; }
+        /* Mejora visual de la barra en navegadores webkit */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            cursor: pointer;
+            margin-top: -4px; 
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #374151;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white h-screen flex flex-col font-sans overflow-hidden">
+
+    <!-- Dummy audio element to keep iOS/Android playback alive in background if needed -->
+    <audio id="dummy-audio" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsinline></audio>
+
+    <!-- Main Header -->
+    <header class="bg-gray-800 px-4 py-3 shadow-md flex justify-between items-center z-50 shrink-0 border-b border-gray-700">
+        <div class="flex items-center gap-2 min-w-0">
+            <svg class="w-6 h-6 md:w-8 md:h-8 text-red-500 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.86-0.23,1.538-1.768,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M9.667,15.333V8.667L15.667,12L9.667,15.333z"/></svg>
+            <h1 class="text-base md:text-xl font-bold tracking-tight truncate">SheetsTube</h1>
+            <div id="cloud-sync-indicator" class="hidden ml-2 flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 text-green-500" title="Sincronizado con la nube">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3 md:gap-5 shrink-0">
+            <!-- Local Folder Connector button to map physical drives -->
+            <button onclick="window.selectLocalFolder()" class="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold transition-all active:scale-95 shadow-md" title="Conectar directorio local">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                <span class="hidden sm:inline">Carpeta Local</span>
+            </button>
+            <!-- Fallback input directory picker for non-chrome browsers -->
+            <input type="file" id="fallback-directory-input" class="hidden" webkitdirectory directory multiple onchange="window.handleFallbackDirectory(event)">
+            
+            <button onclick="window.openConfig()" class="p-1 text-gray-400 hover:text-white transition-colors active:scale-95" title="Configuración">
+                <svg class="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066-1.543.94-3.31-.826-2.37-2.37-1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        <!-- Player Container -->
+        <div class="w-full md:w-2/3 lg:w-3/4 bg-black flex flex-col justify-start overflow-hidden">
+            <div id="player-wrapper" class="hidden w-full flex flex-col h-full">
+                <div id="player-container" class="aspect-w-16 w-full shadow-2xl shrink-0">
+                    <div id="yt-player"></div>
+                    <video id="local-player" class="hidden" controls playsinline></video>
+                    <!-- Audio Player View -->
+                    <div id="audio-visualizer" class="hidden audio-visualizer flex flex-col items-center justify-center bg-gray-900 border-b border-gray-800">
+                        <div class="p-8 bg-red-600/10 rounded-full mb-4 animate-pulse">
+                            <svg class="w-20 h-20 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                        </div>
+                        <p id="audio-filename" class="text-gray-400 font-medium px-4 text-center"></p>
+                    </div>
+                </div>
+                
+                <!-- Player controls -->
+                <div class="w-full bg-gray-900 py-3 flex flex-col justify-center items-center gap-2 border-t border-gray-800 shrink-0">
+                    <!-- Barra de progreso / Timeline -->
+                    <div class="w-full px-6 flex items-center gap-3">
+                        <span id="time-current" class="text-xs text-gray-400 font-mono w-10 text-right">0:00</span>
+                        <input type="range" id="progress-slider" class="flex-1 appearance-none cursor-pointer accent-red-600" value="0" min="0" max="100" step="0.1">
+                        <span id="time-duration" class="text-xs text-gray-400 font-mono w-10">0:00</span>
+                    </div>
+
+                    <div class="flex justify-center items-center gap-8 md:gap-12 w-full pb-1">
+                        <button onclick="window.seekVideo(-20)" class="text-gray-400 hover:text-white flex items-center gap-2 transition group p-2">
+                            <svg class="w-7 h-7 md:w-8 md:h-8 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+                            <span class="text-xs font-bold">20s</span>
+                        </button>
+                        
+                        <button onclick="window.togglePlayPause()" class="w-14 h-14 md:w-16 md:h-16 bg-red-600 hover:bg-red-700 text-white rounded-full flex justify-center items-center shadow-lg transition-transform hover:scale-105 active:scale-90">
+                            <svg id="icon-play" class="w-7 h-7 md:w-8 md:h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="icon-pause" class="w-7 h-7 md:w-8 md:h-8 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                        
+                        <button onclick="window.seekVideo(20)" class="text-gray-400 hover:text-white flex items-center gap-2 transition group p-2">
+                            <span class="text-xs font-bold">20s</span>
+                            <svg class="w-7 h-7 md:w-8 md:h-8 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                        </button>
+
+                        <button onclick="window.toggleSubtitles()" id="cc-button" class="text-gray-400 hover:text-white transition-colors p-2" title="Subtítulos (CC)">
+                            <svg class="w-6 h-6 md:w-7 md:h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M6.5 8.5c-.28 0-.5.22-.5.5v6c0 .28.22.5.5.5h3c.28 0 .5-.22.5-.5v-1c0-.28-.22-.5-.5-.5H7.5v-4h2c.28 0 .5-.22.5-.5v-1c0-.28-.22-.5-.5-.5h-3zm8 0c-.28 0-.5.22-.5.5v6c0 .28.22.5.5.5h3c.28 0 .5-.22.5-.5v-1c0-.28-.22-.5-.5-.5h-2v-4h2c.28 0 .5-.22.5-.5v-1c0-.28-.22-.5-.5-.5h-3z"/></svg>
+                        </button>
+                        <input type="file" id="subtitle-file-input" class="hidden" accept=".vtt,.srt" onchange="window.handleSubtitleUpload(event)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard / Placeholder Screen -->
+            <div id="player-placeholder" class="flex flex-col items-center justify-center text-gray-500 p-10 text-center h-full">
+                <svg class="w-16 h-16 mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                <p class="text-base font-medium">Selecciona una lista o conecta un directorio local</p>
+                <p class="text-xs mt-2 opacity-50">Ordenación automática por fecha y sincronización de subtítulos.</p>
+                <button onclick="window.selectLocalFolder()" class="mt-6 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-all active:scale-95 shadow-md flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                    Elegir Carpeta del Disco Duro
+                </button>
+            </div>
+        </div>
+
+        <!-- Sidebar Playlist -->
+        <div class="w-full md:w-1/3 lg:w-1/4 bg-gray-800 flex flex-col border-l border-gray-700 h-[40vh] md:h-auto shrink-0">
+            <div class="p-4 bg-gray-900 border-b border-gray-700 shrink-0">
+                <div class="flex justify-between items-center mb-2 min-w-0 gap-1">
+                    <label for="playlist-selector" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider m-0 truncate">Playlist</label>
+                    
+                    <!-- Advanced Dual-Badge Stats Container (Visto / Restante) -->
+                    <div id="playlist-stats" class="text-[10px] text-gray-400 flex items-center gap-2 hidden bg-gray-800 px-2 py-1 rounded-lg border border-gray-700 shadow-inner shrink-0" title="Tiempo total visualizado y restante en esta lista">
+                        <div class="flex items-center gap-0.5">
+                            <span class="text-green-500 font-extrabold">✓</span>
+                            <span id="watched-time" class="font-bold text-gray-300">0m</span>
+                        </div>
+                        <div class="w-[1px] h-3 bg-gray-700"></div>
+                        <div class="flex items-center gap-0.5">
+                            <span class="text-red-400 font-extrabold">⌛</span>
+                            <span id="remaining-time" class="font-bold text-red-400">0m</span>
+                        </div>
+                    </div>
+                </div>
+                <select id="playlist-selector" class="w-full bg-gray-800 text-white border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all disabled:opacity-50 text-sm" disabled onchange="window.loadPlaylist(this.value)">
+                    <option value="">Cargando...</option>
+                </select>
+            </div>
+            <div id="video-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 bg-gray-800"></div>
+            <div id="list-loading" class="hidden p-10 flex items-center justify-center text-gray-400">
+                <svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Settings -->
+    <div id="config-modal" class="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] hidden backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-gray-700 my-auto">
+            <h2 class="text-xl font-bold mb-4 text-white">Configuración</h2>
+            
+            <!-- Google Sheets Config -->
+            <p class="text-gray-400 text-xs mb-2 uppercase tracking-wider font-semibold">Datos: Google Sheets</p>
+            <div class="mb-3">
+                <label class="block text-xs font-medium text-gray-400 mb-1">Spreadsheet ID</label>
+                <input type="text" id="input-sheet-id" class="w-full bg-gray-900 text-white border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm">
+            </div>
+            <div class="mb-5">
+                <label class="block text-xs font-medium text-gray-400 mb-1">Google API Key</label>
+                <input type="password" id="input-api-key" class="w-full bg-gray-900 text-white border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm">
+            </div>
+
+            <!-- Firebase Config -->
+            <hr class="border-gray-700 my-4">
+            <p class="text-gray-400 text-xs mb-2 uppercase tracking-wider font-semibold text-green-400">Nube: Firebase Database</p>
+            <div class="mb-3">
+                <label class="block text-xs font-medium text-gray-400 mb-1">Sync ID (Para conectar otros dispositivos)</label>
+                <input type="text" id="input-sync-id" class="w-full bg-gray-900 text-white border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm font-mono tracking-widest uppercase">
+            </div>
+            <div class="mb-5">
+                <label class="block text-xs font-medium text-gray-400 mb-1">Configuración Firebase (Objeto JSON)</label>
+                <textarea id="input-firebase-config" class="w-full bg-gray-900 text-gray-300 border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500 text-[10px] font-mono h-20" placeholder='{"apiKey": "...", "projectId": "...", ...}'></textarea>
+                <p class="text-[10px] text-gray-500 mt-1">Pega aquí el bloque JSON de tu consola de Firebase.</p>
+            </div>
+
+            <div id="config-error" class="hidden mb-4 p-3 bg-red-900/50 text-red-200 text-xs rounded-lg border border-red-700/50"></div>
+            
+            <hr class="border-gray-700 my-4">
+            <p class="text-gray-400 text-xs mb-2 uppercase tracking-wider font-semibold">Respaldo Local (Offline)</p>
+            <div class="flex gap-2 mb-6">
+                <button onclick="window.exportData()" class="flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2" title="Descargar progreso y configuración">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Exportar
+                </button>
+                <button onclick="window.triggerImport()" class="flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2" title="Restaurar progreso de un archivo">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Importar
+                </button>
+                <input type="file" id="import-data-input" class="hidden" accept=".json" onchange="window.importData(event)">
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <button onclick="window.saveConfig()" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl shadow-lg transition-all active:scale-95">Guardar Configuración</button>
+                <button onclick="window.closeConfig()" id="btn-cancel-config" class="w-full py-2 text-xs font-medium text-gray-400 hover:text-white transition-colors hidden">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Modal System to entirely replace blocking alerts/confirms -->
+    <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] hidden backdrop-blur-xs p-4">
+        <div class="bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-5 border border-gray-700 text-center">
+            <h3 id="custom-alert-title" class="text-base font-bold text-white mb-2">Aviso</h3>
+            <p id="custom-alert-message" class="text-xs text-gray-300 mb-5"></p>
+            <div class="flex gap-2 justify-center">
+                <button id="custom-alert-btn-cancel" onclick="window.closeAlert(false)" class="hidden px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold rounded-lg transition-colors"></button>
+                <button id="custom-alert-btn-confirm" onclick="window.closeAlert(true)" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- YouTube API Load -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <!-- Main Logic + Firebase as Module -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Globals
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let isFirebaseReady = false;
+
+        // Ensure we always have a sync ID
+        let syncId = localStorage.getItem('sheetstube_sync_id');
+        if (!syncId) {
+            syncId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            localStorage.setItem('sheetstube_sync_id', syncId);
+        }
+
+        // IndexedDB Persistence Logic (Upgraded schema for directory pointers only)
+        const DB_NAME = "SheetsTubeLocalDB";
+        const STORE_NAME = "videos"; 
+        let localdb;
+
+        const initDB = () => {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 3);
+                request.onupgradeneeded = (e) => {
+                    localdb = e.target.result;
+                    if (!localdb.objectStoreNames.contains(STORE_NAME)) {
+                        localdb.createObjectStore(STORE_NAME, { keyPath: "id" });
+                    }
+                    if (!localdb.objectStoreNames.contains("subtitles")) {
+                        localdb.createObjectStore("subtitles", { keyPath: "videoId" });
+                    }
+                    if (!localdb.objectStoreNames.contains("settings")) {
+                        localdb.createObjectStore("settings", { keyPath: "key" });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    localdb = e.target.result;
+                    resolve(localdb);
+                };
+                request.onerror = (e) => reject(e);
+            });
+        };
+
+        const saveFolderHandle = async (handle) => {
+            const tx = localdb.transaction("settings", "readwrite");
+            await new Promise((resolve, reject) => {
+                const req = tx.objectStore("settings").put({ key: "local_folder_handle", handle });
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        };
+
+        const getFolderHandle = async () => {
+            const tx = localdb.transaction("settings", "readonly");
+            return new Promise((resolve) => {
+                const req = tx.objectStore("settings").get("local_folder_handle");
+                req.onsuccess = () => resolve(req.result?.handle || null);
+                req.onerror = () => resolve(null);
+            });
+        };
+
+        const removeFolderHandle = async () => {
+            const tx = localdb.transaction("settings", "readwrite");
+            await new Promise((resolve) => {
+                const req = tx.objectStore("settings").delete("local_folder_handle");
+                req.onsuccess = () => resolve();
+            });
+        };
+
+        // App Core Configuration Globals
+        let config = {
+            spreadsheetId: localStorage.getItem('sheets_id') || '',
+            apiKey: localStorage.getItem('sheets_api_key') || '',
+            firebaseConfig: localStorage.getItem('firebase_config') || ''
+        };
+        
+        let player = null;
+        const localPlayer = document.getElementById('local-player');
+        const ytPlaceholder = document.getElementById('yt-player');
+        const audioVisualizer = document.getElementById('audio-visualizer');
+        const audioFilenameText = document.getElementById('audio-filename');
+        const cloudIndicator = document.getElementById('cloud-sync-indicator');
+        
+        // --- NEW SLIDER GLOBALS ---
+        const progressSlider = document.getElementById('progress-slider');
+        const timeCurrent = document.getElementById('time-current');
+        const timeDuration = document.getElementById('time-duration');
+        let isSliderDragging = false;
+        let ytUiInterval = null;
+
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) return "0:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        progressSlider.addEventListener('input', () => {
+            isSliderDragging = true;
+            timeCurrent.textContent = formatTime(progressSlider.value);
+        });
+
+        progressSlider.addEventListener('change', () => {
+            const newTime = parseFloat(progressSlider.value);
+            const video = currentPlaylistData[currentIndex];
+            if (!video) return;
+            
+            if (video.type === 'youtube') {
+                if (player) player.seekTo(newTime, true);
+            } else {
+                localPlayer.currentTime = newTime;
+            }
+            isSliderDragging = false;
+        });
+
+        localPlayer.addEventListener('timeupdate', () => {
+            const t = localPlayer.currentTime;
+            const d = localPlayer.duration;
+            if (!isSliderDragging && d > 0) {
+                progressSlider.max = d;
+                progressSlider.value = t;
+                timeCurrent.textContent = formatTime(t);
+                timeDuration.textContent = formatTime(d);
+            }
+        });
+        // --- END SLIDER LOGIC ---
+
+        let currentPlaylistData = [];
+        let currentIndex = -1;
+        let timeTrackerInterval = null;
+        let currentPlaylistName = '';
+        const COMPLETED_THRESHOLD = 10;
+        let subtitleTrack = null;
+        let subtitleBlobUrl = null;
+        let subtitleActive = false;
+
+        let currentMetadataScannerToken = 0;
+
+        let alertResolve = null;
+        window.showAlert = function(title, message, confirmText = "Aceptar", cancelText = "") {
+            return new Promise((resolve) => {
+                alertResolve = resolve;
+                document.getElementById('custom-alert-title').textContent = title;
+                document.getElementById('custom-alert-message').textContent = message;
+                
+                const confirmBtn = document.getElementById('custom-alert-btn-confirm');
+                confirmBtn.textContent = confirmText;
+                
+                const cancelBtn = document.getElementById('custom-alert-btn-cancel');
+                if (cancelText) {
+                    cancelBtn.textContent = cancelText;
+                    cancelBtn.classList.remove('hidden');
+                } else {
+                    cancelBtn.classList.add('hidden');
+                }
+                
+                document.getElementById('custom-alert-modal').classList.remove('hidden');
+            });
+        };
+
+        window.closeAlert = function(isConfirm) {
+            document.getElementById('custom-alert-modal').classList.add('hidden');
+            if (alertResolve) alertResolve(isConfirm);
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            initFirebase(); 
+            
+            if (!config.spreadsheetId || !config.apiKey) {
+                window.openConfig(true);
+            } else {
+                fetchPlaylists();
+            }
+        });
+
+        async function initFirebase() {
+            if (!config.firebaseConfig) return;
+            try {
+                const fbConfigObj = JSON.parse(config.firebaseConfig);
+                const app = initializeApp(fbConfigObj);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                const initAuth = async () => {
+                    await signInAnonymously(auth);
+                };
+                
+                await initAuth();
+                
+                onAuthStateChanged(auth, async (user) => {
+                    currentUser = user;
+                    if (user) {
+                        isFirebaseReady = true;
+                        cloudIndicator.classList.remove('hidden');
+                        await downloadFromFirebase(); 
+                        if (config.spreadsheetId) fetchPlaylists(); 
+                    }
+                });
+            } catch (e) {
+                console.error("Firebase init failed:", e);
+                window.showConfigMessage("Error conectando a Firebase. Revisa tu JSON.", true);
+                isFirebaseReady = false;
+                cloudIndicator.classList.add('hidden');
+            }
+        }
+
+        async function saveToFirebase() {
+            if (!isFirebaseReady || !currentUser || !db) return;
+            
+            const dataToSync = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('yt_prog_') || key === 'last_playlist' || key.startsWith('progress_')) {
+                    dataToSync[key] = localStorage.getItem(key);
+                }
+            }
+
+            try {
+                const docRef = doc(db, 'artifacts', 'sheetstube', 'users', syncId, 'data', 'progress');
+                await setDoc(docRef, dataToSync);
+                console.log("Cloud Sync OK");
+            } catch (e) {
+                console.error("Cloud Sync Error", e);
+            }
+        }
+
+        async function downloadFromFirebase() {
+            if (!isFirebaseReady || !currentUser || !db) return;
+            try {
+                const docRef = doc(db, 'artifacts', 'sheetstube', 'users', syncId, 'data', 'progress');
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    for (const key in data) {
+                        localStorage.setItem(key, data[key]);
+                    }
+                    console.log("Cloud Download OK");
+                }
+            } catch (e) {
+                console.error("Cloud Download Error", e);
+            }
+        }
+
+        function getStableLocalId(filename) {
+            let hash = 0;
+            for (let i = 0; i < filename.length; i++) {
+                const char = filename.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash |= 0; 
+            }
+            const cleanName = filename.replace(/[^a-zA-Z0-9-_]/g, "").substring(0, 30);
+            return `local_${cleanName}_${Math.abs(hash)}`;
+        }
+
+        function getLocalVideoDuration(file) {
+            return new Promise((resolve) => {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.src = URL.createObjectURL(file);
+                video.onloadedmetadata = () => {
+                    URL.revokeObjectURL(video.src);
+                    resolve(video.duration);
+                };
+                video.onerror = () => {
+                    URL.revokeObjectURL(video.src);
+                    resolve(0);
+                };
+            });
+        }
+
+        window.selectLocalFolder = async function() {
+            if (!('showDirectoryPicker' in window)) {
+                await window.showAlert(
+                    "Navegador no compatible (o sin HTTPS)",
+                    "Para vincular carpetas persistentes, se requiere un navegador compatible (Chrome/Edge/Opera) accediendo mediante conexión segura HTTPS o localhost. En su lugar usaremos el cargador manual.",
+                    "Seleccionar Carpeta"
+                );
+                document.getElementById('fallback-directory-input').click();
+                return;
+            }
+
+            try {
+                const handle = await window.showDirectoryPicker({
+                    mode: 'read'
+                });
+                await saveFolderHandle(handle);
+                await scanLocalDirectory(handle);
+            } catch (err) {
+                console.warn("Folder picker cancelled or failed", err);
+            }
+        };
+
+        window.handleFallbackDirectory = async function(event) {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+
+            const videoFiles = [];
+            const subtitleFiles = {};
+
+            for (const file of files) {
+                const name = file.name;
+                const ext = name.split('.').pop().toLowerCase();
+                const baseName = name.substring(0, name.lastIndexOf('.'));
+
+                if (['mp4', 'mkv', 'webm', 'avi', 'mov', 'mp3', 'm4a'].includes(ext)) {
+                    videoFiles.push({
+                        name: name,
+                        baseName: baseName,
+                        type: file.type || `video/${ext}`,
+                        file: file,
+                        lastModified: file.lastModified
+                    });
+                } else if (['srt', 'vtt'].includes(ext)) {
+                    subtitleFiles[baseName.toLowerCase()] = file;
+                }
+            }
+
+            videoFiles.sort((a, b) => b.lastModified - a.lastModified);
+
+            currentPlaylistData = videoFiles.map((v) => {
+                const stableId = getStableLocalId(v.name);
+                return {
+                    id: stableId,
+                    name: v.name,
+                    type: v.type,
+                    blob: v.file,
+                    subtitleFile: subtitleFiles[v.baseName.toLowerCase()] || null,
+                    isLocal: true
+                };
+            });
+
+            const selector = document.getElementById('playlist-selector');
+            selector.value = "Carpeta Local";
+            localStorage.setItem('last_playlist', 'Carpeta Local');
+            renderLocalVideosUI();
+        };
+
+        async function scanLocalDirectory(handle) {
+            document.getElementById('video-list').innerHTML = '';
+            document.getElementById('list-loading').classList.remove('hidden');
+
+            try {
+                if (await handle.queryPermission({ mode: 'read' }) !== 'granted') {
+                    if (await handle.requestPermission({ mode: 'read' }) !== 'granted') {
+                        throw new Error("Permisos denegados por el usuario.");
+                    }
+                }
+
+                const videoFiles = [];
+                const subtitleFiles = {};
+
+                for await (const entry of handle.values()) {
+                    if (entry.kind === 'file') {
+                        const name = entry.name;
+                        const ext = name.split('.').pop().toLowerCase();
+                        const baseName = name.substring(0, name.lastIndexOf('.'));
+
+                        if (['mp4', 'mkv', 'webm', 'avi', 'mov', 'mp3', 'm4a'].includes(ext)) {
+                            const file = await entry.getFile();
+                            videoFiles.push({
+                                name: name,
+                                baseName: baseName,
+                                type: file.type || `video/${ext}`,
+                                file: file,
+                                lastModified: file.lastModified
+                            });
+                        } else if (['srt', 'vtt'].includes(ext)) {
+                            const file = await entry.getFile();
+                            subtitleFiles[baseName.toLowerCase()] = file;
+                        }
+                    }
+                }
+
+                videoFiles.sort((a, b) => b.lastModified - a.lastModified);
+
+                currentPlaylistData = videoFiles.map((v) => {
+                    const stableId = getStableLocalId(v.name);
+                    return {
+                        id: stableId,
+                        name: v.name,
+                        type: v.type,
+                        blob: v.file,
+                        subtitleFile: subtitleFiles[v.baseName.toLowerCase()] || null,
+                        isLocal: true
+                    };
+                });
+
+                document.getElementById('list-loading').classList.add('hidden');
+                
+                const selector = document.getElementById('playlist-selector');
+                selector.value = "Carpeta Local";
+                localStorage.setItem('last_playlist', 'Carpeta Local');
+
+                renderLocalVideosUI();
+            } catch (err) {
+                console.error("Scanning failed", err);
+                document.getElementById('list-loading').classList.add('hidden');
+                await window.showAlert("Error de Acceso", "No se pudo leer la carpeta local seleccionada. Conéctala de nuevo.", "Reconectar");
+                await removeFolderHandle();
+                fetchPlaylists();
+            }
+        }
+
+        async function runBackgroundDurationScanner(token) {
+            for (let i = 0; i < currentPlaylistData.length; i++) {
+                if (token !== currentMetadataScannerToken) return; 
+                const v = currentPlaylistData[i];
+                if (!v.isLocal) continue;
+
+                const progKey = `yt_prog_${v.id}`;
+                let progData = JSON.parse(localStorage.getItem(progKey) || 'null');
+                
+                if (!progData || !progData.d) {
+                    const d = await getLocalVideoDuration(v.blob);
+                    if (token !== currentMetadataScannerToken) return;
+                    if (d > 0) {
+                        const t = progData ? progData.t : 0;
+                        localStorage.setItem(progKey, JSON.stringify({ t, d }));
+                        updateVideoUI(i, t, d);
+                        updatePlaylistStats();
+                    }
+                }
+            }
+        }
+
+        function renderLocalVideosUI() {
+            let html = '';
+            currentPlaylistData.forEach((v, i) => {
+                const progData = JSON.parse(localStorage.getItem(`yt_prog_${v.id}`) || 'null');
+                const isCompleted = progData && (progData.d - progData.t <= COMPLETED_THRESHOLD);
+                const isAudio = v.type.startsWith('audio/');
+                
+                const dateStr = new Date(v.blob.lastModified).toLocaleString('es-ES', {
+                    day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit'
+                });
+                
+                html += `
+                <div id="video-item-${i}" onclick="window.playVideo(${i}, true)" class="video-item flex gap-3 p-3 mb-2 rounded-xl cursor-pointer hover:bg-gray-700/50 border border-transparent ${isCompleted ? 'opacity-40' : ''}">
+                    <div class="relative w-24 h-16 shrink-0 bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center border border-gray-600">
+                        ${isAudio ? 
+                          '<svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>' : 
+                          '<svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
+                        }
+                        <div class="absolute bottom-0 left-0 h-1 bg-red-600 video-progress-bar" style="width: ${progData ? (progData.t/progData.d*100) : 0}%"></div>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center overflow-hidden min-w-0">
+                        <h3 class="text-sm font-semibold text-gray-200 truncate" title="${v.name}">${v.name}</h3>
+                        <div class="flex flex-col gap-0.5 mt-1">
+                             <p class="text-[9px] text-gray-500 font-medium">${isAudio ? 'Audio' : 'Vídeo'} • ${v.subtitleFile ? 'CC Match' : 'Sin subtítulos'}</p>
+                             <p class="text-[9px] text-red-400/80 font-mono">${dateStr}</p>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById('video-list').innerHTML = html || `
+                <div class="text-center text-gray-500 py-10 text-sm">
+                    <p class="mb-2">Carpeta vacía o sin archivos reproducibles.</p>
+                    <p class="text-[10px] opacity-75">Formatos soportados: mp4, mkv, webm, mp3, m4a</p>
+                </div>`;
+            
+            updatePlaylistStats();
+
+            currentMetadataScannerToken = Date.now();
+            runBackgroundDurationScanner(currentMetadataScannerToken);
+
+            const lastSavedId = localStorage.getItem(`progress_Carpeta Local_last_played_id`);
+            let resumeIndex = -1;
+            if (lastSavedId) {
+                resumeIndex = currentPlaylistData.findIndex(v => v.id === lastSavedId);
+            }
+            if (resumeIndex !== -1) {
+                window.playVideo(resumeIndex, false);
+            } else if (currentPlaylistData.length > 0) {
+                window.playVideo(0, false);
+            }
+        }
+
+        window.openConfig = function(isInitial = false) {
+            document.getElementById('input-sheet-id').value = config.spreadsheetId;
+            document.getElementById('input-api-key').value = config.apiKey;
+            document.getElementById('input-sync-id').value = syncId;
+            document.getElementById('input-firebase-config').value = config.firebaseConfig;
+            
+            document.getElementById('btn-cancel-config').classList.toggle('hidden', isInitial);
+            document.getElementById('config-modal').classList.remove('hidden');
+        }
+
+        window.closeConfig = function() { 
+            document.getElementById('config-modal').classList.add('hidden'); 
+            document.getElementById('config-error').classList.add('hidden');
+        }
+
+        window.showConfigMessage = function(msg, isError = false) {
+            const el = document.getElementById('config-error');
+            el.textContent = msg;
+            el.className = "mb-4 p-3 text-xs rounded-lg border block"; 
+            if (isError) {
+                el.classList.add('bg-red-900/50', 'text-red-200', 'border-red-700/50');
+            } else {
+                el.classList.add('bg-green-900/50', 'text-green-200', 'border-green-700/50');
+            }
+        }
+
+        window.saveConfig = function() {
+            const newId = document.getElementById('input-sheet-id').value.trim();
+            const newKey = document.getElementById('input-api-key').value.trim();
+            const newSyncId = document.getElementById('input-sync-id').value.trim().toUpperCase();
+            const newFbConfig = document.getElementById('input-firebase-config').value.trim();
+            
+            if (!newId || !newKey) {
+                window.showConfigMessage("Faltan credenciales de Google Sheets", true);
+                return;
+            }
+
+            localStorage.setItem('sheets_id', newId);
+            localStorage.setItem('sheets_api_key', newKey);
+            
+            if (newSyncId) {
+                syncId = newSyncId;
+                localStorage.setItem('sheetstube_sync_id', syncId);
+            }
+            
+            if (newFbConfig) {
+                try {
+                    JSON.parse(newFbConfig); 
+                    localStorage.setItem('firebase_config', newFbConfig);
+                    config.firebaseConfig = newFbConfig;
+                } catch(e) {
+                    window.showConfigMessage("El JSON de Firebase no es válido", true);
+                    return;
+                }
+            } else {
+                localStorage.removeItem('firebase_config');
+                config.firebaseConfig = '';
+            }
+
+            config.spreadsheetId = newId;
+            config.apiKey = newKey;
+            
+            window.closeConfig();
+            
+            if (config.firebaseConfig) {
+                initFirebase();
+            } else {
+                isFirebaseReady = false;
+                cloudIndicator.classList.add('hidden');
+                fetchPlaylists();
+            }
+        }
+
+        async function fetchPlaylists() {
+            let names = ["Carpeta Local"];
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${config.spreadsheetId}?fields=sheets.properties.title&key=${config.apiKey}`;
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.sheets) {
+                        const sheetNames = data.sheets.map(s => s.properties.title);
+                        names = [...names, ...sheetNames];
+                    }
+                }
+            } catch (e) { 
+                console.warn("Offline or config error. Only local available.");
+            }
+            
+            populateSelector(names);
+            const last = localStorage.getItem('last_playlist');
+            if (last && names.includes(last)) {
+                document.getElementById('playlist-selector').value = last;
+                window.loadPlaylist(last);
+            } else {
+                document.getElementById('playlist-selector').value = "Carpeta Local";
+                window.loadPlaylist("Carpeta Local");
+            }
+        }
+
+        window.loadPlaylist = async function(sheetName) {
+            if (!sheetName) return;
+            currentPlaylistName = sheetName;
+            localStorage.setItem('last_playlist', sheetName);
+            document.getElementById('video-list').innerHTML = '';
+            
+            if (sheetName === "Carpeta Local") {
+                const handle = await getFolderHandle();
+                if (handle) {
+                    await scanLocalDirectory(handle);
+                } else {
+                    document.getElementById('video-list').innerHTML = `
+                        <div class="text-center p-6 text-gray-500 text-xs">
+                            <p class="mb-4">No hay ninguna carpeta vinculada al reproductor.</p>
+                            <button onclick="window.selectLocalFolder()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-all active:scale-95">Conectar Carpeta</button>
+                        </div>`;
+                }
+                return;
+            }
+
+            document.getElementById('list-loading').classList.remove('hidden');
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${config.spreadsheetId}/values/${encodeURIComponent(sheetName)}!A:A?key=${config.apiKey}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                document.getElementById('list-loading').classList.add('hidden');
+
+                if (data.values) {
+                    processVideos(data.values);
+                }
+            } catch (e) { 
+                document.getElementById('list-loading').classList.add('hidden');
+            }
+        }
+
+        function populateSelector(names) {
+            const selector = document.getElementById('playlist-selector');
+            selector.innerHTML = '<option value="" disabled selected>Seleccionar Playlist...</option>';
+            names.forEach(n => {
+                const opt = document.createElement('option');
+                opt.value = opt.textContent = n;
+                selector.appendChild(opt);
+            });
+            selector.disabled = false;
+        }
+
+        function extractVideoID(url) {
+            const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[7].length == 11) ? match[7] : null;
+        }
+
+        function processVideos(rows) {
+            let html = '';
+            currentPlaylistData = [];
+            let validIndex = 0;
+            rows.forEach((row) => {
+                const videoId = extractVideoID(row[0] || '');
+                if (videoId) {
+                    currentPlaylistData.push({ id: videoId, type: 'youtube' });
+                    const progData = JSON.parse(localStorage.getItem(`yt_prog_${videoId}`) || 'null');
+                    const isCompleted = progData && (progData.d - progData.t <= COMPLETED_THRESHOLD);
+                    html += generateVideoItemHtml(validIndex, videoId, `Video ${validIndex + 1}`, videoId, progData, isCompleted, true);
+                    validIndex++;
+                }
+            });
+            document.getElementById('video-list').innerHTML = html || '<p class="text-center text-gray-500 py-10 text-sm">No se encontraron enlaces de YouTube.</p>';
+            updatePlaylistStats();
+
+            const lastSavedId = localStorage.getItem(`progress_${currentPlaylistName}_last_played_id`);
+            let resumeIndex = -1;
+            if (lastSavedId) {
+                resumeIndex = currentPlaylistData.findIndex(v => v.id === lastSavedId);
+            }
+            if (resumeIndex !== -1) {
+                window.playVideo(resumeIndex, false);
+            } else if (currentPlaylistData.length > 0) {
+                window.playVideo(0, false);
+            }
+        }
+
+        function generateVideoItemHtml(index, id, title, subtitle, progData, isCompleted, isYoutube) {
+            const thumb = isYoutube ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : '';
+            return `
+                <div id="video-item-${index}" onclick="window.playVideo(${index}, true)" class="video-item flex gap-3 p-3 mb-2 rounded-xl cursor-pointer hover:bg-gray-700/50 border border-transparent ${isCompleted ? 'opacity-40' : ''}">
+                    <div class="relative w-24 h-16 shrink-0 bg-black rounded-lg overflow-hidden border border-gray-700">
+                        ${isYoutube ? `<img src="${thumb}" class="w-full h-full object-cover opacity-70">` : `<div class="w-full h-full bg-gray-800"></div>`}
+                        <div class="absolute bottom-0 left-0 h-1 bg-red-600 video-progress-bar" style="width: ${progData ? (progData.t/progData.d*100) : 0}%"></div>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center min-w-0">
+                        <h3 class="text-sm font-semibold text-gray-200 truncate">${title}</h3>
+                        <p class="text-[10px] text-gray-500 font-mono truncate">${id}</p>
+                    </div>
+                </div>`;
+        }
+
+        window.playVideo = async function(index, isManual = false) {
+            if (index < 0 || index >= currentPlaylistData.length) return;
+            
+            // Reiniciar estado visual de la barra de progreso
+            progressSlider.value = 0;
+            timeCurrent.textContent = "0:00";
+            timeDuration.textContent = "0:00";
+            
+            if (currentIndex !== -1 && isFirebaseReady) saveToFirebase();
+            
+            currentIndex = index;
+            const video = currentPlaylistData[index];
+            
+            localStorage.setItem(`progress_${currentPlaylistName}_last_played_id`, video.id);
+            
+            let startTime = 0;
+            const progData = JSON.parse(localStorage.getItem(`yt_prog_${video.id}`) || 'null');
+            if (progData && (progData.d - progData.t > COMPLETED_THRESHOLD)) {
+                startTime = progData.t;
+            }
+
+            if (isManual) document.getElementById('dummy-audio').play().catch(() => {});
+
+            updateActiveVideoStyle(index);
+            document.getElementById('player-placeholder').classList.add('hidden');
+            document.getElementById('player-wrapper').classList.remove('hidden');
+
+            ytPlaceholder.classList.add('hidden');
+            localPlayer.classList.add('hidden');
+            audioVisualizer.classList.add('hidden');
+            cleanupTrack();
+
+            if (video.type === 'youtube') {
+                localPlayer.pause();
+                ytPlaceholder.classList.remove('hidden');
+                
+                if (!player) {
+                    player = new YT.Player('yt-player', {
+                        height: '100%', width: '100%', videoId: video.id,
+                        host: 'https://www.youtube-nocookie.com',
+                        playerVars: {
+                            'autoplay': isManual ? 1 : 0,
+                            'start': Math.floor(startTime),
+                            'playsinline': 1,
+                            'enablejsapi': 1,
+                            'modestbranding': 1,
+                            'rel': 0
+                        },
+                        events: {
+                            'onStateChange': onPlayerStateChange,
+                            'onError': () => setTimeout(playPreviousVideo, 2000)
+                        }
+                    });
+                } else {
+                    if (isManual) player.loadVideoById({ videoId: video.id, startSeconds: startTime });
+                    else player.cueVideoById({ videoId: video.id, startSeconds: startTime });
+                }
+            } else {
+                if (player && player.pauseVideo) player.pauseVideo();
+                
+                const isAudio = video.type.startsWith('audio/');
+                if (isAudio) {
+                    audioVisualizer.classList.remove('hidden');
+                    audioFilenameText.textContent = video.name;
+                } else {
+                    localPlayer.classList.remove('hidden');
+                }
+                
+                const url = URL.createObjectURL(video.blob);
+                localPlayer.src = url;
+                
+                if (video.subtitleFile) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        let content = e.target.result;
+                        if (video.subtitleFile.name.endsWith('.srt')) {
+                            content = srtToVtt(content);
+                        }
+                        loadSubtitleTrack(content);
+                    };
+                    reader.readAsText(video.subtitleFile);
+                } else {
+                    const subContent = await getSubtitle(video.id);
+                    if (subContent) {
+                        loadSubtitleTrack(subContent);
+                    }
+                }
+
+                localPlayer.currentTime = startTime;
+                if (isManual) localPlayer.play().catch(e => console.warn("Auto-play blocked", e));
+
+                localPlayer.onplay = () => {
+                    updatePlayPauseUI(true);
+                    startLocalTracking();
+                };
+                localPlayer.onpause = () => {
+                    updatePlayPauseUI(false);
+                    clearInterval(timeTrackerInterval);
+                    saveToFirebase(); 
+                };
+                localPlayer.onended = () => {
+                    saveToFirebase(); 
+                    playPreviousVideo();
+                };
+            }
+        }
+
+        function startLocalTracking() {
+            clearInterval(timeTrackerInterval);
+            timeTrackerInterval = setInterval(() => {
+                const t = localPlayer.currentTime;
+                const d = localPlayer.duration;
+                if (d > 0) {
+                    localStorage.setItem(`yt_prog_${currentPlaylistData[currentIndex].id}`, JSON.stringify({t, d}));
+                    updateVideoUI(currentIndex, t, d);
+                    updatePlaylistStats();
+                }
+            }, 2000);
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.PLAYING) {
+                updatePlayPauseUI(true);
+                document.getElementById('dummy-audio').play().catch(() => {});
+                
+                clearInterval(timeTrackerInterval);
+                clearInterval(ytUiInterval);
+                
+                timeTrackerInterval = setInterval(() => {
+                    const t = player.getCurrentTime();
+                    const d = player.getDuration();
+                    if (d > 0) {
+                        localStorage.setItem(`yt_prog_${currentPlaylistData[currentIndex].id}`, JSON.stringify({t, d}));
+                        updateVideoUI(currentIndex, t, d);
+                        updatePlaylistStats();
+                    }
+                }, 2000);
+                
+                ytUiInterval = setInterval(() => {
+                    if (!isSliderDragging && player && player.getDuration() > 0) {
+                        const t = player.getCurrentTime();
+                        const d = player.getDuration();
+                        progressSlider.max = d;
+                        progressSlider.value = t;
+                        timeCurrent.textContent = formatTime(t);
+                        timeDuration.textContent = formatTime(d);
+                    }
+                }, 500);
+
+            } else if (event.data === YT.PlayerState.PAUSED) {
+                updatePlayPauseUI(false);
+                document.getElementById('dummy-audio').pause();
+                clearInterval(timeTrackerInterval);
+                clearInterval(ytUiInterval);
+                saveToFirebase(); 
+            } else if (event.data === YT.PlayerState.ENDED) {
+                clearInterval(ytUiInterval);
+                saveToFirebase(); 
+                playPreviousVideo();
+            }
+        }
+
+        function playPreviousVideo() {
+            const nextIdx = findNextAutoIndex(currentIndex);
+            if (nextIdx !== -1) window.playVideo(nextIdx, true);
+        }
+
+        function findNextAutoIndex(fromIndex) {
+            for (let i = fromIndex - 1; i >= 0; i--) {
+                const vid = currentPlaylistData[i];
+                const progData = JSON.parse(localStorage.getItem(`yt_prog_${vid.id}`) || 'null');
+                if (!(progData && (progData.d - progData.t <= COMPLETED_THRESHOLD))) return i;
+            }
+            return -1;
+        }
+
+        window.togglePlayPause = function() {
+            const video = currentPlaylistData[currentIndex];
+            if (!video) return;
+            if (video.type === 'youtube') {
+                if (!player) return;
+                player.getPlayerState() === YT.PlayerState.PLAYING ? player.pauseVideo() : player.playVideo();
+            } else {
+                localPlayer.paused ? localPlayer.play() : localPlayer.pause();
+            }
+        }
+
+        window.seekVideo = function(s) {
+            const video = currentPlaylistData[currentIndex];
+            if (!video) return;
+            if (video.type === 'youtube') {
+                if (!player) return;
+                player.seekTo(player.getCurrentTime() + s, true);
+            } else {
+                localPlayer.currentTime += s;
+            }
+        }
+
+        function updatePlayPauseUI(isPlaying) {
+            document.getElementById('icon-play').classList.toggle('hidden', isPlaying);
+            document.getElementById('icon-pause').classList.toggle('hidden', !isPlaying);
+        }
+
+        function updateVideoUI(index, time, duration) {
+            const el = document.getElementById(`video-item-${index}`);
+            if (!el) return;
+            const bar = el.querySelector('.video-progress-bar');
+            if (bar) bar.style.width = `${(time / duration) * 100}%`;
+            if (duration - time <= COMPLETED_THRESHOLD) el.classList.add('opacity-40');
+        }
+
+        function updateActiveVideoStyle(idx) {
+            document.querySelectorAll('.video-item').forEach((el, i) => {
+                el.classList.toggle('bg-gray-700/80', i === idx);
+                el.classList.toggle('border-red-500/50', i === idx);
+                if (i === idx) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        }
+        
+        function updatePlaylistStats() {
+            let totalWatched = 0;
+            let totalRemaining = 0;
+            let hasValidStats = false;
+
+            currentPlaylistData.forEach(video => {
+                const progData = JSON.parse(localStorage.getItem(`yt_prog_${video.id}`) || 'null');
+                if (progData && progData.d > 0) {
+                    hasValidStats = true;
+                    totalWatched += progData.t;
+                    const diff = progData.d - progData.t;
+                    if (diff > COMPLETED_THRESHOLD) {
+                        totalRemaining += diff;
+                    }
+                }
+            });
+
+            const formatDuration = (totalSeconds) => {
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                let text = '';
+                if (hours > 0) text += `${hours}h `;
+                text += `${minutes}m`;
+                return text;
+            };
+
+            const statsContainer = document.getElementById('playlist-stats');
+            const watchedSpan = document.getElementById('watched-time');
+            const remainingSpan = document.getElementById('remaining-time');
+            
+            if (statsContainer && watchedSpan && remainingSpan) {
+                if (hasValidStats) {
+                    statsContainer.classList.remove('hidden');
+                    watchedSpan.textContent = formatDuration(totalWatched);
+                    remainingSpan.textContent = formatDuration(totalRemaining);
+                } else {
+                    statsContainer.classList.add('hidden');
+                }
+            }
+        }
+
+        window.onYouTubeIframeAPIReady = function() {}
+
+        window.exportData = function() {
+            try {
+                const data = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    data[key] = localStorage.getItem(key);
+                }
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", `sheetstube_backup_${new Date().toISOString().split('T')[0]}.json`);
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+                window.showConfigMessage("Datos exportados correctamente.", false);
+            } catch (err) {
+                window.showConfigMessage("Error al exportar los datos.", true);
+            }
+        }
+
+        window.triggerImport = function() {
+            document.getElementById('import-data-input').click();
+        }
+
+        window.importData = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    for (const key in data) {
+                        localStorage.setItem(key, data[key]);
+                    }
+                    window.showConfigMessage("Datos importados correctamente. Recargando...", false);
+                    setTimeout(() => location.reload(), 1500);
+                } catch (err) {
+                    window.showConfigMessage("Error: El archivo no es un respaldo válido.", true);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; 
+        }
+
+        function srtToVtt(srt) {
+            if (srt.charCodeAt(0) === 0xFEFF) srt = srt.slice(1);
+            let vtt = srt.replace(/\r\n/g, '\n');
+            vtt = vtt.replace(/^(\d{2}:\d{2}:\d{2}),(\d{3})/gm, '$1.$2');
+            vtt = 'WEBVTT\n\n' + vtt;
+            return vtt;
+        }
+
+        function cleanupTrack() {
+            if (subtitleBlobUrl) {
+                URL.revokeObjectURL(subtitleBlobUrl);
+                subtitleBlobUrl = null;
+            }
+            if (subtitleTrack && subtitleTrack.parentNode) {
+                subtitleTrack.parentNode.removeChild(subtitleTrack);
+            }
+            subtitleTrack = null;
+            subtitleActive = false;
+            updateCcButtonState();
+        }
+
+        function loadSubtitleTrack(vttContent) {
+            cleanupTrack();
+            if (!vttContent) return;
+
+            const blob = new Blob([vttContent], { type: 'text/vtt' });
+            subtitleBlobUrl = URL.createObjectURL(blob);
+
+            const track = document.createElement('track');
+            track.kind = 'subtitles';
+            track.label = 'Subtítulos';
+            track.srclang = 'es';
+            track.src = subtitleBlobUrl;
+            track.default = true;
+
+            localPlayer.appendChild(track);
+            subtitleTrack = track;
+            subtitleActive = true;
+
+            for (let i = 0; i < localPlayer.textTracks.length; i++) {
+                localPlayer.textTracks[i].mode = 'showing';
+            }
+            updateCcButtonState();
+        }
+
+        function updateCcButtonState() {
+            const btn = document.getElementById('cc-button');
+            if (!btn) return;
+            if (subtitleActive) {
+                btn.classList.add('text-red-500');
+                btn.classList.remove('text-gray-400');
+            } else {
+                btn.classList.remove('text-red-500');
+                btn.classList.add('text-gray-400');
+            }
+        }
+
+        window.toggleSubtitles = async function() {
+            if (!currentPlaylistData[currentIndex] || !currentPlaylistData[currentIndex].isLocal) return;
+            const video = currentPlaylistData[currentIndex];
+
+            if (subtitleTrack) {
+                subtitleActive = !subtitleActive;
+                for (let i = 0; i < localPlayer.textTracks.length; i++) {
+                    localPlayer.textTracks[i].mode = subtitleActive ? 'showing' : 'hidden';
+                }
+                updateCcButtonState();
+            } else {
+                const content = await getSubtitle(video.id);
+                if (content) {
+                    loadSubtitleTrack(content);
+                } else {
+                    document.getElementById('subtitle-file-input').click();
+                }
+            }
+        };
+
+        window.handleSubtitleUpload = async function(event) {
+            const file = event.target.files[0];
+            if (!file || !currentPlaylistData[currentIndex]) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                let content = e.target.result;
+                if (file.name.endsWith('.srt')) {
+                    content = srtToVtt(content);
+                }
+                const videoId = currentPlaylistData[currentIndex].id;
+                await saveSubtitle(videoId, content);
+                loadSubtitleTrack(content);
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        };
+
+        const saveSubtitle = async (videoId, content) => {
+            const tx = localdb.transaction("subtitles", "readwrite");
+            tx.objectStore("subtitles").put({ videoId, content });
+            return new Promise((resolve) => tx.oncomplete = () => resolve());
+        };
+
+        const getSubtitle = async (videoId) => {
+            const tx = localdb.transaction("subtitles", "readonly");
+            const store = tx.objectStore("subtitles");
+            const request = store.get(videoId);
+            return new Promise((resolve) => request.onsuccess = () => resolve(request.result?.content || null));
+        };
+    </script>
+</body>
+</html>
