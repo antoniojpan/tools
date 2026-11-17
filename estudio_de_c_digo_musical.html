@@ -266,6 +266,71 @@ rutina principal {
                             </li>
                         </ul>
                     </div>
+
+                    <div class="space-y-2">
+                        <h3 class="font-medium text-slate-200">4. Palabras clave</h3>
+                        <ul class="space-y-1.5 font-mono text-[11px]">
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">tempo N</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Pulsos por minuto. Entero de 30 a 300.</span>
+                            </li>
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">rutina Nombre { }</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Declara una subrutina. No puede coincidir con una palabra clave, ni siquiera con mayúscula inicial (<code class="font-mono">Bateria</code> no es válido).</span>
+                            </li>
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">rutina principal { }</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Punto de entrada obligatorio y único.</span>
+                            </li>
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">llamar Nombre</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Llama a otra rutina y espera a que termine.</span>
+                            </li>
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">juntos(A, B, …)</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Lanza dos o más rutinas en paralelo.</span>
+                            </li>
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">repetir N veces { }</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Bucle contado. Dentro existe <code class="font-mono">vuelta</code> (1 a N, solo lectura).</span>
+                            </li>
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">si … entonces { } sino { }</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Condicional. <code class="font-mono">sino</code> es opcional.</span>
+                            </li>
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">tocar nota instrumento(Nota, dur)</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Una nota.</span>
+                            </li>
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">tocar acorde instrumento(Acorde, dur)</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Un acorde.</span>
+                            </li>
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">tocar bateria(pieza, dur)</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Percusión.</span>
+                            </li>
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">esperar(N)</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Silencio de N pulsos.</span>
+                            </li>
+                            <li class="bg-slate-950 p-2 rounded border border-slate-800">
+                                <span class="text-slate-200">azar(min, max)</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Entero aleatorio entre min y max.</span>
+                            </li>
+                        </ul>
+
+                        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-2 font-mono text-[11px]">
+                            <div><span class="text-slate-500 font-sans">Instrumentos</span> <span class="text-slate-300">guitarra · piano · bajo · sinte</span></div>
+                            <div><span class="text-slate-500 font-sans">Batería</span> <span class="text-slate-300">bombo · caja · charles · platillo</span></div>
+                            <div><span class="text-slate-500 font-sans">Notas</span> <span class="text-slate-300">A–G + # o b + octava 1–6</span> <span class="text-slate-500 font-sans">(</span><span class="text-slate-300">C1 … B6</span><span class="text-slate-500 font-sans">, ej. F#2, Bb4)</span></div>
+                            <div><span class="text-slate-500 font-sans">Acordes</span> <span class="text-slate-300">A–G + # o b + sufijo</span> <span class="text-slate-500 font-sans">(</span><span class="text-slate-300">vacío, m, 7, m7, maj7, sus4, dim</span><span class="text-slate-500 font-sans">)</span></div>
+                            <div><span class="text-slate-500 font-sans">Duración</span> <span class="text-slate-300">número &gt; 0 y ≤ 64, por defecto 1</span></div>
+                            <div><span class="text-slate-500 font-sans">Números</span> <span class="text-slate-300">enteros o decimales con punto (0.5)</span></div>
+                            <div><span class="text-slate-500 font-sans">Comentarios</span> <span class="text-slate-300">// hasta el final de la línea</span></div>
+                            <div><span class="text-slate-500 font-sans">Aritmética</span> <span class="text-slate-300">+ − * / %</span> <span class="text-slate-500 font-sans">y asignación</span> <span class="text-slate-300">variable = expresión</span></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -329,7 +394,7 @@ rutina principal {
 
 tempo 110
 
-rutina Bateria {
+rutina RitmoBateria {
     repetir 8 veces {
         tocar bateria(bombo, 0.5)
         tocar bateria(charles, 0.5)
@@ -364,7 +429,7 @@ rutina principal {
     }
     
     // 2. Ejecución concurrente de los tres bloques a la vez
-    juntos(Bateria, LineaBajo, ArpegioPiano)
+    juntos(RitmoBateria, LineaBajo, ArpegioPiano)
     
     // 3. Cierre final tras terminar todas las rutinas paralelas
     tocar acorde piano(Am, 2)
