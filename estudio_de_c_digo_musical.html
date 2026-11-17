@@ -77,92 +77,44 @@
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-sky-500/30 selection:text-sky-200">
+<body class="bg-slate-950 text-slate-200 font-sans min-h-screen flex flex-col">
 
-    <!-- Barra Superior de Navegación y Controles de Ejecución -->
-    <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 sticky top-0 z-30 shadow-lg">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-            <!-- Identidad de la aplicación -->
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center shadow-md shadow-sky-500/20">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="font-bold text-base sm:text-lg tracking-tight text-white">CodeSynth Studio</h1>
-                        <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">Sintaxis Estricta v1.0</span>
-                    </div>
-                    <p class="text-xs text-slate-400 hidden sm:block">Entorno de programación estructurada y concurrente mediante síntesis de audio</p>
-                </div>
-            </div>
+    <!-- Barra Superior: título y controles de ejecución -->
+    <header class="bg-slate-950 border-b border-slate-800 px-4 py-3 sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <h1 class="font-semibold text-base text-slate-100">CodeSynth Studio</h1>
 
-            <!-- Selector de Lecciones / Ejemplos -->
             <div class="flex flex-wrap items-center gap-2">
-                <label for="exampleSelector" class="text-xs text-slate-400 font-medium hidden md:inline">Cargar plantilla:</label>
-                <select id="exampleSelector" class="bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs sm:text-sm rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-sky-500 transition cursor-pointer">
-                    <option value="ejemplo1">1. Estructura básica (rutina principal)</option>
-                    <option value="ejemplo2">2. Bucles y condicionales (repetir / si)</option>
-                    <option value="ejemplo3">3. Concurrencia (juntos en paralelo)</option>
-                    <option value="ejemplo4">4. Variables, módulo (%) y azar()</option>
+                <select id="exampleSelector" class="bg-transparent text-slate-400 text-xs rounded border border-slate-800 px-2 py-1.5 focus:outline-none focus:border-slate-600 transition cursor-pointer">
+                    <option value="ejemplo1">Ejemplo 1 · estructura básica</option>
+                    <option value="ejemplo2">Ejemplo 2 · bucles y condiciones</option>
+                    <option value="ejemplo3">Ejemplo 3 · concurrencia</option>
+                    <option value="ejemplo4">Ejemplo 4 · variables y azar</option>
                 </select>
 
-                <!-- Botones de Compilación y Ejecución -->
-                <button id="btnVerify" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-medium flex items-center gap-1.5 transition active:scale-95" title="Analizar léxico y sintaxis sin reproducir">
-                    <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>Compilar</span>
-                </button>
+                <button id="btnVerify" class="px-3 py-1.5 rounded border border-slate-700 text-slate-300 text-xs hover:border-slate-500 hover:text-white transition" title="Analizar sin reproducir">Compilar</button>
 
-                <button id="btnRun" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition active:scale-95">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
-                    </svg>
-                    <span>Ejecutar</span>
-                </button>
+                <button id="btnRun" class="px-3 py-1.5 rounded bg-emerald-700 text-white text-xs font-medium hover:bg-emerald-600 transition">Ejecutar</button>
 
-                <button id="btnStop" disabled class="px-3 py-2 rounded-lg bg-rose-600/80 hover:bg-rose-500 disabled:opacity-40 disabled:pointer-events-none text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition active:scale-95">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <rect x="5" y="5" width="10" height="10" rx="1.5"/>
-                    </svg>
-                    <span>Detener</span>
-                </button>
+                <button id="btnStop" disabled class="px-3 py-1.5 rounded border border-rose-900 text-rose-300 text-xs hover:border-rose-700 disabled:opacity-30 disabled:pointer-events-none transition">Detener</button>
+
+                <button id="btnDownload" class="px-3 py-1.5 rounded border border-slate-700 text-slate-300 text-xs hover:border-slate-500 hover:text-white transition" title="Guardar el código como archivo de texto">Descargar .txt</button>
             </div>
         </div>
     </header>
 
     <!-- Contenedor Principal (Grid Responsivo: Editor a la izquierda, Consola/Inspector/Manual a la derecha) -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+    <main class="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-        <!-- COLUMNA IZQUIERDA: Editor de Código Fuente (7 columnas en desktop) -->
-        <section class="lg:col-span-7 flex flex-col bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden min-h-[460px] lg:min-h-[620px]">
-            <!-- Cabecera del Editor -->
-            <div class="bg-slate-800/70 px-4 py-2.5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-rose-500/80"></span>
-                    <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
-                    <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
-                    <span class="ml-2 font-mono text-xs text-slate-300 font-medium">programa.csynth</span>
-                </div>
-                <div class="flex items-center gap-3 text-xs font-mono text-slate-400">
+        <!-- Editor -->
+        <section class="lg:col-span-7 flex flex-col bg-slate-900 rounded-lg border border-slate-800 overflow-hidden min-h-[460px] lg:min-h-[600px]">
+            <div class="bg-slate-900 px-4 py-2 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                <span class="font-mono text-xs text-slate-400">programa.csynth</span>
+                <div class="flex items-center gap-3 text-xs font-mono text-slate-500">
                     <span id="cursorPos">Línea 1, Col 1</span>
-                    <span class="text-slate-600">|</span>
-                    <span id="tempoBadge" class="text-sky-400">tempo: 120 BPM</span>
+                    <span class="text-slate-700">·</span>
+                    <span id="tempoBadge" class="text-slate-400">tempo 120</span>
                 </div>
-            </div>
-
-            <!-- Barra de Inserción Rápida de Estructuras (Plantillas sintácticas) -->
-            <div class="bg-slate-900/90 px-3 py-2 border-b border-slate-800 flex items-center gap-1.5 overflow-x-auto">
-                <span class="text-[11px] text-slate-500 font-medium mr-1 shrink-0">Insertar bloque:</span>
-                <button data-snippet="rutina NombreRutina {\n    \n}" class="snippet-btn px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-sky-300 font-mono text-xs border border-slate-700/80 shrink-0 transition">+ rutina</button>
-                <button data-snippet="repetir 4 veces {\n    \n}" class="snippet-btn px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-purple-300 font-mono text-xs border border-slate-700/80 shrink-0 transition">+ repetir</button>
-                <button data-snippet="si vuelta == 4 entonces {\n    \n}" class="snippet-btn px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-amber-300 font-mono text-xs border border-slate-700/80 shrink-0 transition">+ si..entonces</button>
-                <button data-snippet="tocar nota guitarra(C3, 1)" class="snippet-btn px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono text-xs border border-slate-700/80 shrink-0 transition">+ tocar nota</button>
-                <button data-snippet="tocar acorde guitarra(Am, 2)" class="snippet-btn px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono text-xs border border-slate-700/80 shrink-0 transition">+ tocar acorde</button>
-                <button data-snippet="tocar bateria(bombo, 1)" class="snippet-btn px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-teal-300 font-mono text-xs border border-slate-700/80 shrink-0 transition">+ bateria</button>
-                <button data-snippet="juntos(RutinaA, RutinaB)" class="snippet-btn px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-indigo-300 font-mono text-xs border border-slate-700/80 shrink-0 transition">+ juntos()</button>
             </div>
 
             <!-- Área de Edición con Números de Línea y Resaltado Dinámico -->
@@ -178,89 +130,93 @@
                 </div>
             </div>
 
+            <!-- Bloques de código: discreto y plegado por defecto -->
+            <details class="border-t border-slate-800 text-xs">
+                <summary class="px-4 py-2 cursor-pointer text-slate-500 hover:text-slate-300 select-none">Insertar bloque</summary>
+                <div class="px-3 pb-2 flex flex-wrap items-center gap-1.5">
+                    <button data-snippet="rutina NombreRutina {\n    \n}" class="snippet-btn px-2 py-1 rounded border border-slate-800 text-slate-400 font-mono text-[11px] hover:text-slate-200 hover:border-slate-700 transition">rutina</button>
+                    <button data-snippet="repetir 4 veces {\n    \n}" class="snippet-btn px-2 py-1 rounded border border-slate-800 text-slate-400 font-mono text-[11px] hover:text-slate-200 hover:border-slate-700 transition">repetir</button>
+                    <button data-snippet="si vuelta == 4 entonces {\n    \n}" class="snippet-btn px-2 py-1 rounded border border-slate-800 text-slate-400 font-mono text-[11px] hover:text-slate-200 hover:border-slate-700 transition">si..entonces</button>
+                    <button data-snippet="tocar nota guitarra(C3, 1)" class="snippet-btn px-2 py-1 rounded border border-slate-800 text-slate-400 font-mono text-[11px] hover:text-slate-200 hover:border-slate-700 transition">tocar nota</button>
+                    <button data-snippet="tocar acorde guitarra(Am, 2)" class="snippet-btn px-2 py-1 rounded border border-slate-800 text-slate-400 font-mono text-[11px] hover:text-slate-200 hover:border-slate-700 transition">tocar acorde</button>
+                    <button data-snippet="tocar bateria(bombo, 1)" class="snippet-btn px-2 py-1 rounded border border-slate-800 text-slate-400 font-mono text-[11px] hover:text-slate-200 hover:border-slate-700 transition">bateria</button>
+                    <button data-snippet="juntos(RutinaA, RutinaB)" class="snippet-btn px-2 py-1 rounded border border-slate-800 text-slate-400 font-mono text-[11px] hover:text-slate-200 hover:border-slate-700 transition">juntos()</button>
+                </div>
+            </details>
+
             <!-- Pie del Editor: Estado Rápido -->
             <div class="bg-slate-900 border-t border-slate-800 px-4 py-2 flex items-center justify-between text-xs">
-                <div id="statusIndicator" class="flex items-center gap-2 text-slate-400">
-                    <span class="w-2 h-2 rounded-full bg-slate-500"></span>
-                    <span>Listo para compilar</span>
+                <div id="statusIndicator" class="flex items-center gap-2 text-slate-500">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                    <span>Listo</span>
                 </div>
-                <span class="text-slate-500 font-mono hidden sm:inline">Tab = 4 espacios | Case-Sensitive</span>
             </div>
         </section>
 
-        <!-- COLUMNA DERECHA: Consola de Errores, Depurador en Vivo y Manual Estricto (5 columnas) -->
+        <!-- Panel derecho: consola, inspector y manual -->
         <section class="lg:col-span-5 flex flex-col gap-4">
 
-            <!-- Panel de Pestañas: Consola & Inspector vs Manual de Sintaxis -->
-            <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl flex flex-col flex-1 overflow-hidden">
-                <div class="flex border-b border-slate-800 bg-slate-800/40 p-1.5 gap-1">
-                    <button id="tabConsoleBtn" class="flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 text-white shadow transition">
-                        Consola y Depurador
+            <div class="bg-slate-900 rounded-lg border border-slate-800 flex flex-col flex-1 overflow-hidden">
+                <div class="flex border-b border-slate-800">
+                    <button id="tabConsoleBtn" class="flex-1 py-2 px-3 text-xs font-medium text-slate-200 border-b border-slate-400 transition">
+                        Consola
                     </button>
-                    <button id="tabDocsBtn" class="flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 transition">
-                        Manual de Sintaxis Estricta
+                    <button id="tabDocsBtn" class="flex-1 py-2 px-3 text-xs font-medium text-slate-500 hover:text-slate-300 transition">
+                        Manual
                     </button>
                 </div>
 
-                <!-- VISTA 1: CONSOLA DEL COMPILADOR + INSPECTOR EN TIEMPO REAL -->
+                <!-- CONSOLA -->
                 <div id="viewConsole" class="flex-1 flex flex-col p-4 gap-4 overflow-y-auto">
-                    
-                    <!-- Caja de Diagnóstico del Compilador / Errores de Programación -->
+
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Salida del Compilador</h2>
-                            <button id="btnClearConsole" class="text-[11px] text-slate-500 hover:text-slate-300 transition">Limpiar</button>
+                            <h2 class="text-[11px] uppercase tracking-wide text-slate-500">Salida</h2>
+                            <button id="btnClearConsole" class="text-[11px] text-slate-600 hover:text-slate-400 transition">Limpiar</button>
                         </div>
-                        <div id="compilerOutput" class="bg-slate-950 rounded-xl border border-slate-800 p-3.5 font-mono text-xs leading-relaxed min-h-[140px] max-h-[240px] overflow-y-auto">
-                            <div class="text-slate-400">Sistema inicializado. Pulsa <span class="text-emerald-400 font-semibold">Ejecutar</span> para compilar el código fuente y generar la secuencia de audio.</div>
+                        <div id="compilerOutput" class="bg-slate-950 rounded border border-slate-800 p-3 font-mono text-xs leading-relaxed min-h-[130px] max-h-[220px] overflow-y-auto">
+                            <div class="text-slate-500">Pulsa Ejecutar para compilar el código.</div>
                         </div>
                     </div>
 
-                    <!-- Inspector de Ejecución (Pila de llamadas, Hilos y Variables) -->
-                    <div class="bg-slate-950/70 rounded-xl border border-slate-800 p-3.5 flex flex-col gap-3">
+                    <div class="bg-slate-950/50 rounded border border-slate-800 p-3 flex flex-col gap-3">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Inspector de Memoria y Flujo</h3>
-                            <span id="clockDisplay" class="font-mono text-xs text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">Pulso: 0.0</span>
+                            <h3 class="text-[11px] uppercase tracking-wide text-slate-500">Inspector</h3>
+                            <span id="clockDisplay" class="font-mono text-[11px] text-slate-400">Pulso 0.0</span>
                         </div>
 
-                        <!-- Rutinas activas (Hilos de ejecución) -->
                         <div>
-                            <div class="text-[11px] text-slate-500 mb-1">Subrutinas en ejecución (Hilos activos):</div>
-                            <div id="activeRoutinesList" class="flex flex-wrap gap-1.5 min-h-[28px]">
-                                <span class="text-xs font-mono text-slate-600 italic">Ninguna rutina activa</span>
+                            <div class="text-[11px] text-slate-600 mb-1">Hilos activos</div>
+                            <div id="activeRoutinesList" class="flex flex-wrap gap-1.5 min-h-[24px]">
+                                <span class="text-xs font-mono text-slate-600 italic">ninguno</span>
                             </div>
                         </div>
 
-                        <!-- Tabla de Variables en Memoria -->
                         <div>
-                            <div class="text-[11px] text-slate-500 mb-1">Variables en ámbito actual (Scope):</div>
-                            <div id="variablesInspector" class="grid grid-cols-2 sm:grid-cols-3 gap-2 min-h-[34px]">
-                                <div class="col-span-full text-xs font-mono text-slate-600 italic">Sin variables declaradas</div>
+                            <div class="text-[11px] text-slate-600 mb-1">Variables</div>
+                            <div id="variablesInspector" class="grid grid-cols-2 sm:grid-cols-3 gap-2 min-h-[30px]">
+                                <div class="col-span-full text-xs font-mono text-slate-600 italic">sin declarar</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Visualizador de Salida de Audio (Osciloscopio + Registro de eventos) -->
-                    <div class="bg-slate-950/70 rounded-xl border border-slate-800 p-3.5 flex flex-col gap-2">
+                    <div class="bg-slate-950/50 rounded border border-slate-800 p-3 flex flex-col gap-2">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Monitor de Señal de Audio</h3>
-                            <span id="lastSignalLabel" class="font-mono text-[11px] text-emerald-400">Inactivo</span>
+                            <h3 class="text-[11px] uppercase tracking-wide text-slate-500">Señal</h3>
+                            <span id="lastSignalLabel" class="font-mono text-[11px] text-slate-500">inactivo</span>
                         </div>
-                        <canvas id="visualizerCanvas" class="w-full h-24 rounded-lg bg-slate-900 border border-slate-800/80"></canvas>
+                        <canvas id="visualizerCanvas" class="w-full h-20 rounded bg-slate-900 border border-slate-800"></canvas>
                     </div>
                 </div>
 
-                <!-- VISTA 2: MANUAL DE SINTAXIS ESTRICTA -->
-                <div id="viewDocs" class="hidden flex-1 p-4 overflow-y-auto space-y-4 text-xs leading-relaxed text-slate-300">
-                    <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-amber-200">
-                        <strong class="block font-semibold mb-1">Regla Fundamental: Compilador Estricto</strong>
-                        Este lenguaje no corrige errores ni adivina intenciones. Distingue mayúsculas de minúsculas (<code class="font-mono text-amber-300">Case-Sensitive</code>), exige llaves <code class="font-mono">{ }</code> balanceadas y requiere los tipos de datos exactos en cada parámetro.
-                    </div>
+                <!-- MANUAL -->
+                <div id="viewDocs" class="hidden flex-1 p-4 overflow-y-auto space-y-5 text-xs leading-relaxed text-slate-400">
+                    <p>Compilador estricto: distingue mayúsculas de minúsculas, exige llaves <code class="font-mono text-slate-300">{ }</code> balanceadas y tipos exactos en cada parámetro.</p>
 
                     <div class="space-y-2">
-                        <h3 class="font-bold text-white text-sm">1. Estructura del Programa</h3>
-                        <p class="text-slate-400">Todo programa debe contener una <code class="text-sky-300 font-mono">rutina principal</code> como punto de entrada. Las subrutinas auxiliares se declaran antes.</p>
-                        <pre class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 font-mono text-[11px] text-slate-200 overflow-x-auto">tempo 120
+                        <h3 class="font-medium text-slate-200">1. Estructura</h3>
+                        <p>Todo programa necesita una <code class="text-slate-300 font-mono">rutina principal</code>. Las subrutinas se declaran antes.</p>
+                        <pre class="bg-slate-950 p-2.5 rounded border border-slate-800 font-mono text-[11px] text-slate-300 overflow-x-auto">tempo 120
 
 rutina BajoBase {
     tocar nota bajo(C2, 1)
@@ -272,41 +228,41 @@ rutina principal {
                     </div>
 
                     <div class="space-y-2">
-                        <h3 class="font-bold text-white text-sm">2. Control de Flujo y Concurrencia</h3>
+                        <h3 class="font-medium text-slate-200">2. Control de flujo</h3>
                         <ul class="space-y-1.5 font-mono text-[11px]">
                             <li class="bg-slate-950 p-2 rounded border border-slate-800">
-                                <span class="text-purple-400">repetir N veces { ... }</span>
-                                <span class="block font-sans text-slate-400 mt-0.5">Ejecuta el bloque N veces. Crea automáticamente la variable de solo lectura <code class="text-purple-300 font-mono">vuelta</code> (1 a N).</span>
+                                <span class="text-slate-200">repetir N veces { ... }</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Crea la variable <code class="font-mono text-slate-300">vuelta</code> (1 a N).</span>
                             </li>
                             <li class="bg-slate-950 p-2 rounded border border-slate-800">
-                                <span class="text-amber-400">si A == B entonces { ... } sino { ... }</span>
-                                <span class="block font-sans text-slate-400 mt-0.5">Operadores válidos: <code class="font-mono">==</code>, <code class="font-mono">!=</code>, <code class="font-mono">&lt;</code>, <code class="font-mono">&gt;</code>, <code class="font-mono">&lt;=</code>, <code class="font-mono">&gt;=</code>. El bloque <code class="font-mono">sino</code> es opcional.</span>
+                                <span class="text-slate-200">si A == B entonces { ... } sino { ... }</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Comparadores: <code class="font-mono">== != &lt; &gt; &lt;= &gt;=</code>. <code class="font-mono">sino</code> es opcional.</span>
                             </li>
                             <li class="bg-slate-950 p-2 rounded border border-slate-800">
-                                <span class="text-indigo-400">juntos(Rutina1, Rutina2, ...)</span>
-                                <span class="block font-sans text-slate-400 mt-0.5">Ejecuta dos o más subrutinas en paralelo y espera a que todas terminen.</span>
+                                <span class="text-slate-200">juntos(Rutina1, Rutina2)</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Ejecuta las rutinas en paralelo y espera a que terminen.</span>
                             </li>
                         </ul>
                     </div>
 
                     <div class="space-y-2">
-                        <h3 class="font-bold text-white text-sm">3. Instrucciones y Tipos de Parámetros</h3>
+                        <h3 class="font-medium text-slate-200">3. Instrucciones</h3>
                         <ul class="space-y-1.5 font-mono text-[11px]">
                             <li class="bg-slate-950 p-2 rounded border border-slate-800">
-                                <span class="text-emerald-400">tocar nota instrumento(Nota, duracion)</span>
-                                <span class="block font-sans text-slate-400 mt-0.5">Instrumentos: <code class="font-mono">guitarra</code>, <code class="font-mono">piano</code>, <code class="font-mono">bajo</code>, <code class="font-mono">sinte</code>. Nota estricta: <code class="font-mono">C1..B6</code> (ej. <code class="font-mono">C3</code>, <code class="font-mono">F#2</code>, <code class="font-mono">Bb4</code>). Duración opcional (por defecto <code class="font-mono">1</code>).</span>
+                                <span class="text-slate-200">tocar nota instrumento(Nota, duracion)</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Instrumentos: <code class="font-mono">guitarra piano bajo sinte</code>. Notas <code class="font-mono">C1..B6</code> (<code class="font-mono">C3</code>, <code class="font-mono">F#2</code>, <code class="font-mono">Bb4</code>).</span>
                             </li>
                             <li class="bg-slate-950 p-2 rounded border border-slate-800">
-                                <span class="text-emerald-400">tocar acorde instrumento(Acorde, duracion)</span>
-                                <span class="block font-sans text-slate-400 mt-0.5">Acordes válidos: raíz <code class="font-mono">A..G</code> (+ <code class="font-mono">#</code>/<code class="font-mono">b</code>) + sufijo opcional (<code class="font-mono">m</code>, <code class="font-mono">7</code>, <code class="font-mono">m7</code>, <code class="font-mono">maj7</code>, <code class="font-mono">sus4</code>, <code class="font-mono">dim</code>). Ej: <code class="font-mono">Am</code>, <code class="font-mono">G7</code>, <code class="font-mono">F#m</code>.</span>
+                                <span class="text-slate-200">tocar acorde instrumento(Acorde, duracion)</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Raíz <code class="font-mono">A..G</code> con <code class="font-mono">#</code>/<code class="font-mono">b</code> y sufijo opcional: <code class="font-mono">m 7 m7 maj7 sus4 dim</code>. Ej: <code class="font-mono">Am</code>, <code class="font-mono">F#m</code>.</span>
                             </li>
                             <li class="bg-slate-950 p-2 rounded border border-slate-800">
-                                <span class="text-teal-400">tocar bateria(pieza, duracion)</span>
-                                <span class="block font-sans text-slate-400 mt-0.5">Piezas válidas: <code class="font-mono">bombo</code>, <code class="font-mono">caja</code>, <code class="font-mono">platillo</code>, <code class="font-mono">charles</code>.</span>
+                                <span class="text-slate-200">tocar bateria(pieza, duracion)</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Piezas: <code class="font-mono">bombo caja platillo charles</code>.</span>
                             </li>
                             <li class="bg-slate-950 p-2 rounded border border-slate-800">
-                                <span class="text-sky-400">esperar(duracion)</span> / <span class="text-sky-400">azar(min, max)</span>
-                                <span class="block font-sans text-slate-400 mt-0.5">Pausa la ejecución durante N pulsos / Devuelve un entero aleatorio entre min y max.</span>
+                                <span class="text-slate-200">esperar(duracion)</span> · <span class="text-slate-200">azar(min, max)</span>
+                                <span class="block font-sans text-slate-400 mt-0.5">Pausa N pulsos / entero aleatorio entre min y max.</span>
                             </li>
                         </ul>
                     </div>
@@ -1660,21 +1616,21 @@ rutina principal {
                 running: 'bg-sky-400 animate-pulse text-sky-300'
             };
             const [dotClass, textClass] = (colors[type] || colors.idle).split(' ');
-            statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full ${dotClass}"></span><span class="${textClass} font-medium">${text}</span>`;
+            statusIndicator.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${dotClass}"></span><span class="${textClass}">${text}</span>`;
         }
 
         function renderCompilerSuccess(timeline) {
             highlightedErrorLine = null;
             renderEditorOverlay();
-            tempoBadge.textContent = `tempo: ${timeline.tempo} BPM`;
+            tempoBadge.textContent = `tempo ${timeline.tempo}`;
             const soundEventsCount = timeline.events.filter(e => e.kind === 'sound').length;
 
             compilerOutput.innerHTML = `
-                <div class="text-emerald-400 font-semibold mb-1.5">✓ Compilación exitosa (0 errores)</div>
-                <div class="text-slate-300 space-y-1 text-[11px]">
-                    <div>• Análisis léxico y sintáctico validado.</div>
-                    <div>• Instrucciones de salida planificadas: <span class="text-sky-300">${soundEventsCount}</span></div>
-                    <div>• Duración total de ejecución: <span class="text-sky-300">${timeline.totalBeats} pulsos</span> (${(timeline.totalBeats * 60 / timeline.tempo).toFixed(1)} s)</div>
+                <div class="text-emerald-400 mb-1.5">Compilación correcta</div>
+                <div class="text-slate-400 space-y-0.5 text-[11px]">
+                    <div>Sintaxis válida.</div>
+                    <div>Eventos de sonido: <span class="text-slate-200">${soundEventsCount}</span></div>
+                    <div>Duración: <span class="text-slate-200">${timeline.totalBeats} pulsos</span> (${(timeline.totalBeats * 60 / timeline.tempo).toFixed(1)} s)</div>
                 </div>
             `;
         }
@@ -1686,14 +1642,14 @@ rutina principal {
                 setStatus('error', `${err.category} en línea ${err.line}`);
 
                 compilerOutput.innerHTML = `
-                    <div class="bg-rose-950/60 border border-rose-500/40 rounded-lg p-3 space-y-2">
+                    <div class="border border-rose-900 rounded p-3 space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="text-rose-400 font-bold">${err.category}</span>
-                            <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[11px]">Línea ${err.line}</span>
+                            <span class="text-rose-400">${err.category}</span>
+                            <span class="text-[11px] text-rose-300">Línea ${err.line}</span>
                         </div>
-                        <p class="text-slate-100">${err.message}</p>
-                        <div class="pt-2 border-t border-rose-500/20 text-[11px] text-amber-200/90 font-sans">
-                            <strong class="text-amber-300">Concepto de programación:</strong> ${err.conceptTip}
+                        <p class="text-slate-200">${err.message}</p>
+                        <div class="pt-2 border-t border-rose-900/60 text-[11px] text-slate-400">
+                            ${err.conceptTip}
                         </div>
                     </div>
                 `;
@@ -1963,24 +1919,40 @@ rutina principal {
             }
         });
 
-        // Cambio entre pestaña de Consola y Manual de Sintaxis
+        // Descargar el código como archivo de texto
+        document.getElementById('btnDownload').addEventListener('click', () => {
+            const blob = new Blob([codeEditor.value], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'programa.txt';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        });
+
+        // Cambio entre pestaña de Consola y Manual
         const tabConsoleBtn = document.getElementById('tabConsoleBtn');
         const tabDocsBtn = document.getElementById('tabDocsBtn');
         const viewConsole = document.getElementById('viewConsole');
         const viewDocs = document.getElementById('viewDocs');
 
+        const TAB_ON = 'flex-1 py-2 px-3 text-xs font-medium text-slate-200 border-b border-slate-400 transition';
+        const TAB_OFF = 'flex-1 py-2 px-3 text-xs font-medium text-slate-500 hover:text-slate-300 transition';
+
         tabConsoleBtn.addEventListener('click', () => {
             viewConsole.classList.remove('hidden');
             viewDocs.classList.add('hidden');
-            tabConsoleBtn.className = 'flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 text-white shadow transition';
-            tabDocsBtn.className = 'flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 transition';
+            tabConsoleBtn.className = TAB_ON;
+            tabDocsBtn.className = TAB_OFF;
         });
 
         tabDocsBtn.addEventListener('click', () => {
             viewDocs.classList.remove('hidden');
             viewConsole.classList.add('hidden');
-            tabDocsBtn.className = 'flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 text-white shadow transition';
-            tabConsoleBtn.className = 'flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 transition';
+            tabDocsBtn.className = TAB_ON;
+            tabConsoleBtn.className = TAB_OFF;
         });
 
         // Inicialización al cargar la página
