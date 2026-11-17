@@ -16,6 +16,7 @@ Each page is a self-contained HTML file; dependencies load from CDNs. `index.htm
 | [`mezclartablas.html`](https://antoniojpan.github.io/tools/mezclartablas.html) | Grade mixer: combines several mark tables with weights. |
 | [`delimiters.html`](https://antoniojpan.github.io/tools/delimiters.html) | LaTeX delimiter converter. |
 | [`jid26.html`](https://antoniojpan.github.io/tools/jid26.html) | Talk at the V Jornadas de Innovación Docente UCA: from spreadsheet question bank to Moodle XML. |
+| [`estudio_de_c_digo_musical.html`](https://antoniojpan.github.io/tools/estudio_de_c_digo_musical.html) | CodeSynth Studio: a small musical programming language with editor, compiler and live audio playback. |
 
 ### Utilities
 
