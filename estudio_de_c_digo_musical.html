@@ -6,6 +6,8 @@
     <title>CodeSynth Studio — Lenguaje de Programación Musical</title>
     <!-- Tailwind CSS para diseño responsivo y moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Codificador MP3 (lamejs): permite exportar el programa como audio para WhatsApp -->
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
     <!-- Fuentes Google: Inter para interfaz y JetBrains Mono para el editor de código -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -99,6 +101,8 @@
                 <button id="btnStop" disabled class="px-3 py-1.5 rounded border border-rose-900 text-rose-300 text-xs hover:border-rose-700 disabled:opacity-30 disabled:pointer-events-none transition">Detener</button>
 
                 <button id="btnDownload" class="px-3 py-1.5 rounded border border-slate-700 text-slate-300 text-xs hover:border-slate-500 hover:text-white transition" title="Guardar el código como archivo de texto">Descargar .txt</button>
+
+                <button id="btnExportAudio" class="px-3 py-1.5 rounded border border-slate-700 text-slate-300 text-xs hover:border-slate-500 hover:text-white transition" title="Generar un archivo MP3 del programa para enviarlo por WhatsApp">Descargar .mp3</button>
             </div>
         </div>
     </header>
@@ -1601,6 +1605,29 @@ rutina principal {
                     this.activeNodes.push(noise);
                 }
             }
+
+            // Programa todos los eventos de una línea de tiempo a partir de startTime
+            scheduleTimeline(timeline, startTime) {
+                const secPerBeat = 60 / timeline.tempo;
+
+                for (const ev of timeline.events) {
+                    if (ev.kind !== 'sound') continue;
+
+                    const eventStartSec = startTime + ev.startBeat * secPerBeat;
+                    const eventDurSec = ev.durationBeats * secPerBeat * 0.92;
+
+                    if (ev.mode === 'nota') {
+                        const freq = this.noteToFreq(ev.pitch);
+                        this.scheduleTone(ev.instrument, freq, eventStartSec, eventDurSec, 1.0);
+                    } else if (ev.mode === 'acorde') {
+                        const freqs = this.chordToFreqs(ev.pitch);
+                        const perVoiceVol = 0.85 / Math.sqrt(freqs.length);
+                        freqs.forEach(f => this.scheduleTone(ev.instrument, f, eventStartSec, eventDurSec, perVoiceVol));
+                    } else if (ev.mode === 'bateria') {
+                        this.scheduleDrum(ev.pitch, eventStartSec);
+                    }
+                }
+            }
         }
 
         /**
@@ -1757,23 +1784,7 @@ rutina principal {
             playbackStartTime = synth.ctx.currentTime + startDelay;
 
             // Programar todos los eventos sonoros en Web Audio API
-            for (const ev of timeline.events) {
-                if (ev.kind === 'sound') {
-                    const eventStartSec = playbackStartTime + ev.startBeat * secPerBeat;
-                    const eventDurSec = ev.durationBeats * secPerBeat * 0.92;
-
-                    if (ev.mode === 'nota') {
-                        const freq = synth.noteToFreq(ev.pitch);
-                        synth.scheduleTone(ev.instrument, freq, eventStartSec, eventDurSec, 1.0);
-                    } else if (ev.mode === 'acorde') {
-                        const freqs = synth.chordToFreqs(ev.pitch);
-                        const perVoiceVol = 0.85 / Math.sqrt(freqs.length);
-                        freqs.forEach(f => synth.scheduleTone(ev.instrument, f, eventStartSec, eventDurSec, perVoiceVol));
-                    } else if (ev.mode === 'bateria') {
-                        synth.scheduleDrum(ev.pitch, eventStartSec);
-                    }
-                }
-            }
+            synth.scheduleTimeline(timeline, playbackStartTime);
 
             // Bucle de animación para actualizar el inspector visual, líneas activas y osciloscopio
             function updateDebuggerLoop() {
@@ -1985,16 +1996,128 @@ rutina principal {
         });
 
         // Descargar el código como archivo de texto
-        document.getElementById('btnDownload').addEventListener('click', () => {
-            const blob = new Blob([codeEditor.value], { type: 'text/plain;charset=utf-8' });
+        function downloadBlob(blob, filename) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'programa.txt';
+            link.download = filename;
             document.body.appendChild(link);
             link.click();
             link.remove();
-            URL.revokeObjectURL(url);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        document.getElementById('btnDownload').addEventListener('click', () => {
+            downloadBlob(new Blob([codeEditor.value], { type: 'text/plain;charset=utf-8' }), 'programa.txt');
+        });
+
+        // Renderiza el programa completo sin reproducirlo en tiempo real
+        async function renderTimelineToBuffer(timeline) {
+            const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+            if (!OfflineCtx) throw new Error('el navegador no soporta renderizado de audio offline');
+
+            const sampleRate = 44100;
+            const secPerBeat = 60 / timeline.tempo;
+            const durationSec = Math.min(timeline.totalBeats * secPerBeat + 1.2, 300);
+            const offline = new OfflineCtx(2, Math.ceil(durationSec * sampleRate), sampleRate);
+
+            const offlineSynth = new AudioSynthesizer();
+            offlineSynth.ctx = offline;
+            offlineSynth.masterGain = offline.createGain();
+            offlineSynth.masterGain.gain.value = 0.45;
+            offlineSynth.masterGain.connect(offline.destination);
+            offlineSynth.scheduleTimeline(timeline, 0.02);
+
+            return await offline.startRendering();
+        }
+
+        function encodeWav(buffer) {
+            const numCh = Math.min(2, buffer.numberOfChannels);
+            const frames = buffer.length;
+            const bytes = frames * numCh * 2;
+            const view = new DataView(new ArrayBuffer(44 + bytes));
+            const writeStr = (off, str) => { for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i)); };
+
+            writeStr(0, 'RIFF');
+            view.setUint32(4, 36 + bytes, true);
+            writeStr(8, 'WAVE');
+            writeStr(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numCh, true);
+            view.setUint32(24, buffer.sampleRate, true);
+            view.setUint32(28, buffer.sampleRate * numCh * 2, true);
+            view.setUint16(32, numCh * 2, true);
+            view.setUint16(34, 16, true);
+            writeStr(36, 'data');
+            view.setUint32(40, bytes, true);
+
+            const chans = [];
+            for (let c = 0; c < numCh; c++) chans.push(buffer.getChannelData(c));
+
+            let offset = 44;
+            for (let i = 0; i < frames; i++) {
+                for (let c = 0; c < numCh; c++) {
+                    const sample = Math.max(-1, Math.min(1, chans[c][i]));
+                    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                    offset += 2;
+                }
+            }
+            return new Blob([view.buffer], { type: 'audio/wav' });
+        }
+
+        // MP3 mono 128 kbps: archivo ligero y compatible con WhatsApp
+        function encodeMp3(buffer) {
+            const frames = buffer.length;
+            const left = buffer.getChannelData(0);
+            const right = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : null;
+            const pcm = new Int16Array(frames);
+
+            for (let i = 0; i < frames; i++) {
+                const sample = right ? (left[i] + right[i]) / 2 : left[i];
+                const clamped = Math.max(-1, Math.min(1, sample));
+                pcm[i] = clamped < 0 ? clamped * 0x8000 : clamped * 0x7FFF;
+            }
+
+            const encoder = new lamejs.Mp3Encoder(1, buffer.sampleRate, 128);
+            const blockSize = 1152;
+            const chunks = [];
+
+            for (let i = 0; i < frames; i += blockSize) {
+                const encoded = encoder.encodeBuffer(pcm.subarray(i, i + blockSize));
+                if (encoded.length > 0) chunks.push(new Int8Array(encoded));
+            }
+            const tail = encoder.flush();
+            if (tail.length > 0) chunks.push(new Int8Array(tail));
+
+            return new Blob(chunks, { type: 'audio/mpeg' });
+        }
+
+        // Descargar el programa como audio (MP3; WAV si el codificador no está disponible)
+        const btnExportAudio = document.getElementById('btnExportAudio');
+        btnExportAudio.addEventListener('click', async () => {
+            const originalLabel = btnExportAudio.textContent;
+            btnExportAudio.disabled = true;
+            btnExportAudio.textContent = 'Generando…';
+
+            try {
+                const timeline = compileCode();
+                if (!timeline) return;
+
+                const rendered = await renderTimelineToBuffer(timeline);
+                if (window.lamejs) {
+                    downloadBlob(encodeMp3(rendered), 'programa.mp3');
+                    compilerOutput.innerHTML = `<div class="text-slate-400">Audio exportado (MP3, ${(rendered.duration).toFixed(1)} s).</div>`;
+                } else {
+                    downloadBlob(encodeWav(rendered), 'programa.wav');
+                    compilerOutput.innerHTML = `<div class="text-slate-400">Codificador MP3 no disponible: se descargó WAV (${(rendered.duration).toFixed(1)} s).</div>`;
+                }
+            } catch (err) {
+                compilerOutput.innerHTML = `<div class="text-rose-400">No se pudo generar el audio: ${err.message}</div>`;
+            } finally {
+                btnExportAudio.disabled = false;
+                btnExportAudio.textContent = originalLabel;
+            }
         });
 
         // Cambio entre pestaña de Consola y Manual
